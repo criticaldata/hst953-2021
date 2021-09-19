@@ -19,7 +19,7 @@ np.random.seed(42)
 
 
 # create a database connection
-sqluser = 'user'
+sqluser = 'mimicuser'
 dbname = 'mimic'
 schema_name = 'mimiciii'
 
@@ -74,7 +74,7 @@ den = pd.read_sql_query(denquery,con)
 den['los_icu_hr'] = (den.outtime - den.intime).astype('timedelta64[h]')
 den = den[(den.los_icu_hr >= 48)]
 den = den[(den.age<300)]
-den.drop('los_icu_hr', 1, inplace = True)
+den.drop('los_icu_hr', axis = 1, inplace = True)
 den = den[(den.first_hosp_stay == 1) & (den.first_icu_stay == 1)]
 den = den[~(den['first_careunit'].isin(['PICU', 'NICU']))]
 
@@ -85,7 +85,7 @@ den.ethnicity.loc[(den.ethnicity.str.contains('^hisp')) | (den.ethnicity.str.con
 den.ethnicity.loc[(den.ethnicity.str.contains('^asia'))] = 'asian'
 den.ethnicity.loc[~(den.ethnicity.str.contains('|'.join(['white', 'black', 'hispanic', 'asian'])))] = 'other'
 
-den.drop(['diagnosis', 'hospstay_seq', 'los_icu','icustay_seq', 'los_hospital', 'outtime', 'first_careunit', 'first_hosp_stay', 'first_icu_stay'], 1, inplace =True)
+den.drop(['diagnosis', 'hospstay_seq', 'los_icu','icustay_seq', 'los_hospital', 'outtime', 'first_careunit', 'first_hosp_stay', 'first_icu_stay'], axis = 1, inplace =True)
 
 def map_lang(x):
     if x == 'ENGL':
