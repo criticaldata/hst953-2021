@@ -106,7 +106,7 @@ den = pd.read_sql_query(denquery,con)
 den['los_icu_hr'] = (den.outtime - den.intime).astype('timedelta64[h]')
 den = den[(den.los_icu_hr >= 48)]
 den = den[(den.age<300)]
-den.drop('los_icu_hr', 1, inplace = True)
+den.drop('los_icu_hr', axis = 1, inplace = True)
 # den.isnull().sum()
 
 #----clean up
@@ -128,10 +128,10 @@ den.ethnicity.loc[(den.ethnicity.str.contains('^hisp')) | (den.ethnicity.str.con
 den.ethnicity.loc[(den.ethnicity.str.contains('^asia'))] = 'asian'
 den.ethnicity.loc[~(den.ethnicity.str.contains('|'.join(['white', 'black', 'hispanic', 'asian'])))] = 'other'
 
-den = pd.concat([den, pd.get_dummies(den['ethnicity'], prefix='eth')], 1)
-den = pd.concat([den, pd.get_dummies(den['admission_type'], prefix='admType')], 1)
+den = pd.concat([den, pd.get_dummies(den['ethnicity'], prefix='eth')], axis = 1)
+den = pd.concat([den, pd.get_dummies(den['admission_type'], prefix='admType')], axis = 1)
 
-den.drop(['diagnosis', 'hospstay_seq', 'los_icu','icustay_seq', 'admittime', 'dischtime','los_hospital', 'intime', 'outtime', 'ethnicity', 'admission_type', 'first_careunit'], 1, inplace =True) 
+den.drop(['diagnosis', 'hospstay_seq', 'los_icu','icustay_seq', 'admittime', 'dischtime','los_hospital', 'intime', 'outtime', 'ethnicity', 'admission_type', 'first_careunit'], axis = 1, inplace = True) 
 
 #========= 48 hour vitals query 
 
@@ -473,12 +473,3 @@ adult_icu.to_csv(os.path.join(mimicdir, 'adult_icu.gz'), compression='gzip',  in
 adult_notes = notes48.merge(adult_icu[['train', 'subject_id', 'hadm_id', 'icustay_id', 'mort_icu']], how = 'right', on = ['subject_id', 'hadm_id', 'icustay_id'])
 adult_notes.to_csv(os.path.join(mimicdir, 'adult_notes.gz'), compression='gzip',  index = False)
 
-# nicu 
-nicu_missing = mort_ds[(mort_ds.adult_icu==0)].isnull().sum()/mort_ds[(mort_ds.adult_icu==0)].shape[0]
-removes = nicu_missing[(nicu_missing == 1) ]._index 
-n_icu = mort_ds[(mort_ds.adult_icu==0)].drop(removes, 1).dropna()
-
-# create training and testing 
-msk = np.random.rand(len(n_icu)) < 0.7
-n_icu['train'] = np.where(msk, 1, 0) 
-#n_icu.to_csv(os.path.join(mimicdir, 'n_icu.gz'), compression='gzip',  index = False)
